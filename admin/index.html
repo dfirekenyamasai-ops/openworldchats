@@ -3,7 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#1d9e75" />
+  <meta name="description" content="OpenWorld Chats — approve M-Pesa payments" />
   <title>OpenWorld Chats — Admin</title>
+  <link rel="manifest" href="/admin/manifest.webmanifest" />
+  <link rel="icon" type="image/png" sizes="192x192" href="/admin/icon-192.png" />
+  <link rel="apple-touch-icon" href="/admin/icon-192.png" />
   <style>
     :root {
       --bg: #0c1411;
@@ -199,6 +204,19 @@
       <p class="muted">Keep this URL private. Anyone with it can approve access if your Supabase policies allow writes.</p>
     </div>
 
+    <div class="card" id="pwa-card">
+      <h2>Install as Chrome app</h2>
+      <p class="sub">Open in its own window like a desktop app. Turn on alerts to get notified when new payments land in the pending queue (works best while the app is open or minimized).</p>
+      <div class="row" style="margin-top:10px;">
+        <button type="button" id="pwa-install-btn" class="btn secondary" style="display:none;margin-top:0;">Install app</button>
+        <button type="button" id="pwa-notify-btn" class="btn secondary" style="margin-top:0;">Enable payment alerts</button>
+      </div>
+      <p class="muted" id="pwa-hint">
+        Chrome menu → Save and share → Install page as app. Alerts use the browser notification system (not the same as WhatsApp push when the PC is off).
+        Fully closed-app push needs Web Push + a small backend later.
+      </p>
+    </div>
+
     <div class="card">
       <h2>Manual entry (from SMS / message)</h2>
       <p class="sub">Use when you verified payment outside the queue, or after copying details from a pending row.</p>
@@ -270,6 +288,10 @@
     var PHONE_REGEX = /^(?:254|\+254|0)?(7[0-9]{8}|1[0-9]{8})$/;
     var POLL_MS = 8000;
     var pollTimer = null;
+    var lastPendingCount = 0;
+    var pendingNotifyReady = false;
+    var deferredInstallPrompt = null;
+    window.adminNotifyOn = false;
 
     function headers() {
       return {
@@ -290,6 +312,39 @@
     function displayPhone(phone) {
       if (!phone || String(phone).indexOf("254") !== 0) return phone || "—";
       return "0" + String(phone).slice(3);
+    }
+
+    function maybeNotifyPending(count, rows) {
+      if (!window.adminNotifyOn || typeof Notification === "undefined") {
+        lastPendingCount = count;
+        pendingNotifyReady = true;
+        return;
+      }
+      if (Notification.permission !== "granted") {
+        lastPendingCount = count;
+        pendingNotifyReady = true;
+        return;
+      }
+      if (!pendingNotifyReady) {
+        pendingNotifyReady = true;
+        lastPendingCount = count;
+        return;
+      }
+      if (count > lastPendingCount && count > 0) {
+        var newest = rows && rows[0];
+        var body = newest
+          ? ((newest.name || "Customer") + " · " + displayPhone(newest.phone) + " · " + (newest.mpesa_code || ""))
+          : (String(count) + " pending approval(s)");
+        try {
+          new Notification("OpenWorld — new payment", {
+            body: body,
+            icon: "/admin/icon-192.png",
+            badge: "/admin/icon-192.png",
+            tag: "owc-pending-" + String(newest && newest.id ? newest.id : Date.now())
+          });
+        } catch (e) {}
+      }
+      lastPendingCount = count;
     }
 
     function touchSync() {
@@ -497,6 +552,7 @@
       }
       var rows = await res.json();
       document.getElementById("pending-badge").textContent = String(rows.length);
+      maybeNotifyPending(rows.length, rows);
 
       if (!rows.length) {
         root.innerHTML = '<div class="tr" data-label="Pending"><div style="grid-column:1/-1;color:var(--muted);">No pending requests.</div></div>';
@@ -592,7 +648,6 @@
     function startPolling() {
       if (pollTimer) clearInterval(pollTimer);
       pollTimer = setInterval(function () {
-        if (document.visibilityState !== "visible") return;
         refreshAll();
       }, POLL_MS);
       document.getElementById("live-dot").classList.remove("off");
@@ -607,6 +662,50 @@
     document.addEventListener("visibilitychange", function () {
       if (document.visibilityState === "visible") refreshAll();
     });
+
+    window.addEventListener("beforeinstallprompt", function (e) {
+      e.preventDefault();
+      deferredInstallPrompt = e;
+      var btn = document.getElementById("pwa-install-btn");
+      if (btn) btn.style.display = "block";
+    });
+
+    document.getElementById("pwa-install-btn").addEventListener("click", async function () {
+      if (!deferredInstallPrompt) return;
+      deferredInstallPrompt.prompt();
+      await deferredInstallPrompt.userChoice;
+      deferredInstallPrompt = null;
+      document.getElementById("pwa-install-btn").style.display = "none";
+    });
+
+    document.getElementById("pwa-notify-btn").addEventListener("click", async function () {
+      if (!("Notification" in window)) {
+        setStatus("err", "This browser does not support notifications.");
+        return;
+      }
+      var perm = await Notification.requestPermission();
+      if (perm === "granted") {
+        window.adminNotifyOn = true;
+        setStatus("ok", "Alerts on. You will be notified when new items appear in Pending.");
+        try {
+          new Notification("OpenWorld Admin", { body: "Payment alerts are enabled.", icon: "/admin/icon-192.png" });
+        } catch (e) {}
+      } else {
+        setStatus("warn", "Notifications blocked. Allow them in the browser site settings if you change your mind.");
+      }
+    });
+
+    if (window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone) {
+      var pc = document.getElementById("pwa-card");
+      if (pc) {
+        var h = pc.querySelector("h2");
+        if (h) h.textContent = "Running as installed app";
+      }
+    }
+
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/admin/sw.js", { scope: "/admin/" }).catch(function () {});
+    }
 
     refreshAll();
     startPolling();

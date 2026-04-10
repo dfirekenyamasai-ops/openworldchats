@@ -31,3 +31,13 @@ npm run build
 ```
 
 Output is under `dist/` with the same `website/` and `admin/` structure.
+
+## Admin as installable Chrome app (PWA)
+
+1. Open the live admin URL (e.g. `https://openworldchats.vercel.app/admin/`).
+2. Click **Enable payment alerts** and allow notifications.
+3. Install:
+   - If **Install app** appears, use it; or
+   - Chrome menu → **Save and share** → **Install page as app**.
+
+The app opens in its own window. Alerts fire when the **pending** queue **grows** (polling). They work best while the app is open or minimized; **true push when the app is fully quit** needs Web Push + a server (optional later).
