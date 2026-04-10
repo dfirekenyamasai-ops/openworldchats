@@ -110,6 +110,10 @@
       cursor: pointer;
       margin-top: 14px;
     }
+    .btn:disabled {
+      cursor: not-allowed;
+      opacity: 0.75;
+    }
     .btn.secondary {
       background: transparent;
       border-color: var(--line);
@@ -356,7 +360,7 @@
       <h2>Install as Chrome app</h2>
       <p class="sub">Open in its own window like a desktop app. Turn on alerts to get notified when new payments land in the pending queue (works best while the app is open or minimized).</p>
       <div class="row" style="margin-top:10px;">
-        <button type="button" id="pwa-install-btn" class="btn secondary" style="display:none;margin-top:0;">Install app</button>
+        <button type="button" id="download-app-btn" class="btn">Download app</button>
         <button type="button" id="pwa-notify-btn" class="btn secondary" style="margin-top:0;">Enable payment alerts</button>
       </div>
       <p class="muted" id="pwa-hint">
@@ -814,16 +818,39 @@
     window.addEventListener("beforeinstallprompt", function (e) {
       e.preventDefault();
       deferredInstallPrompt = e;
-      var btn = document.getElementById("pwa-install-btn");
-      if (btn) btn.style.display = "block";
+      var dl = document.getElementById("download-app-btn");
+      if (dl) dl.textContent = "Download app";
     });
 
-    document.getElementById("pwa-install-btn").addEventListener("click", async function () {
-      if (!deferredInstallPrompt) return;
-      deferredInstallPrompt.prompt();
-      await deferredInstallPrompt.userChoice;
-      deferredInstallPrompt = null;
-      document.getElementById("pwa-install-btn").style.display = "none";
+    function isStandaloneApp() {
+      return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+    }
+
+    function isIOS() {
+      return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+        (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    }
+
+    document.getElementById("download-app-btn").addEventListener("click", async function () {
+      var dl = document.getElementById("download-app-btn");
+      if (isStandaloneApp()) {
+        setStatus("ok", "You are already using the installed app.");
+        return;
+      }
+      if (deferredInstallPrompt) {
+        try {
+          deferredInstallPrompt.prompt();
+          await deferredInstallPrompt.userChoice;
+        } catch (err) {}
+        deferredInstallPrompt = null;
+        setStatus("ok", "If a prompt appeared, confirm to finish installing.");
+        return;
+      }
+      if (isIOS()) {
+        setStatus("warn", "On iPhone/iPad: tap Share → Add to Home Screen, then open the new icon.");
+      } else {
+        setStatus("warn", "In Chrome or Edge: open the browser menu → Save and share → Install page as app. Or reload once, then tap Download app again.");
+      }
     });
 
     document.getElementById("pwa-notify-btn").addEventListener("click", async function () {
@@ -843,11 +870,18 @@
       }
     });
 
-    if (window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone) {
+    if (isStandaloneApp()) {
       var pc = document.getElementById("pwa-card");
       if (pc) {
         var h = pc.querySelector("h2");
         if (h) h.textContent = "Running as installed app";
+      }
+      var dlBtn = document.getElementById("download-app-btn");
+      if (dlBtn) {
+        dlBtn.textContent = "App installed";
+        dlBtn.disabled = true;
+        dlBtn.classList.add("secondary");
+        dlBtn.style.opacity = "0.9";
       }
     }
 
