@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="theme-color" content="#1d9e75" />
   <meta name="description" content="OpenWorld Chats — approve M-Pesa payments" />
   <title>OpenWorld Chats — Admin</title>
@@ -23,25 +25,31 @@
       --brand: #1d9e75;
     }
     * { box-sizing: border-box; }
+    html {
+      -webkit-text-size-adjust: 100%;
+    }
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
       background: linear-gradient(180deg, #09100d, var(--bg));
       color: var(--text);
       min-height: 100vh;
+      min-height: 100dvh;
+      padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+      -webkit-tap-highlight-color: rgba(29, 158, 117, 0.15);
     }
     .wrap {
       width: 100%;
       max-width: 900px;
       margin: 0 auto;
-      padding: 20px 14px 48px;
+      padding: 16px 14px max(28px, env(safe-area-inset-bottom));
     }
     .card {
       background: var(--panel);
       border: 1px solid var(--line);
-      border-radius: 12px;
+      border-radius: 14px;
       padding: 16px;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
     }
     h1 { margin: 0 0 8px; font-size: 22px; }
     h2 { margin: 0 0 6px; font-size: 17px; }
@@ -118,6 +126,7 @@
       padding: 8px 10px;
       font-size: 12px;
       width: auto;
+      min-height: 40px;
     }
     .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .status {
@@ -170,23 +179,162 @@
       gap: 10px;
       flex-wrap: wrap;
     }
+    .section-action-btn {
+      margin-top: 0 !important;
+    }
+    .section-head .btn.secondary {
+      width: 100%;
+      max-width: 100%;
+    }
+    @media (min-width: 721px) {
+      .section-head .btn.secondary {
+        width: auto;
+        max-width: 220px;
+      }
+    }
     @media (max-width: 720px) {
-      .grid, .row { grid-template-columns: 1fr; }
+      .wrap { padding-left: max(12px, env(safe-area-inset-left)); padding-right: max(12px, env(safe-area-inset-right)); }
+      .card { padding: 14px 12px; border-radius: 12px; }
+      h1 { font-size: 1.35rem; line-height: 1.25; }
+      h2 { font-size: 1.05rem; }
+      .sub { font-size: 0.9rem; }
+      .topbar { flex-direction: column; align-items: flex-start; gap: 8px; }
+      .stat { font-size: 0.85rem; }
+      .stat strong { font-size: 0.95rem; }
+      .grid, .row { grid-template-columns: 1fr; gap: 12px; }
+      label { font-size: 0.8rem; }
+      input, button {
+        font-size: 16px;
+        padding: 14px 14px;
+        min-height: 48px;
+      }
+      .btn { margin-top: 10px; }
+      .btn.secondary, .btn.danger { min-height: 48px; }
+      .table {
+        border: none;
+        border-radius: 0;
+        overflow: visible;
+      }
       .thead { display: none; }
       .tr {
-        grid-template-columns: 1fr;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
         border: 1px solid var(--line);
-        border-radius: 10px;
-        margin: 8px;
-        padding: 12px;
+        border-radius: 12px;
+        margin: 0 0 12px;
+        padding: 14px;
+        font-size: 0.95rem;
       }
+      .tr:last-child { margin-bottom: 0; }
       .tr::before {
         content: attr(data-label);
         font-weight: 700;
         color: var(--muted);
-        font-size: 11px;
+        font-size: 10px;
         text-transform: uppercase;
-        letter-spacing: 0.04em;
+        letter-spacing: 0.06em;
+        margin: -2px 0 2px;
+      }
+      #pending-rows .tr > div:nth-child(1)::before {
+        content: "Name";
+        display: block;
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--muted);
+        margin-bottom: 4px;
+        font-weight: 600;
+      }
+      #pending-rows .tr > div:nth-child(2)::before {
+        content: "Phone";
+        display: block;
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--muted);
+        margin-bottom: 4px;
+        font-weight: 600;
+      }
+      #pending-rows .tr > div:nth-child(3)::before {
+        content: "M-Pesa code";
+        display: block;
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--muted);
+        margin-bottom: 4px;
+        font-weight: 600;
+      }
+      #pending-rows .tr > div:nth-child(4)::before {
+        content: "Actions";
+        display: block;
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--muted);
+        margin-bottom: 8px;
+        font-weight: 600;
+      }
+      #rows .tr > div:nth-child(1)::before {
+        content: "Name";
+        display: block;
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--muted);
+        margin-bottom: 4px;
+        font-weight: 600;
+      }
+      #rows .tr > div:nth-child(2)::before {
+        content: "Phone";
+        display: block;
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--muted);
+        margin-bottom: 4px;
+        font-weight: 600;
+      }
+      #rows .tr > div:nth-child(3)::before {
+        content: "Code";
+        display: block;
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--muted);
+        margin-bottom: 4px;
+        font-weight: 600;
+      }
+      #rows .tr > div:nth-child(4)::before {
+        content: "Status";
+        display: block;
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--muted);
+        margin-bottom: 4px;
+        font-weight: 600;
+      }
+      .actions {
+        flex-direction: column;
+        gap: 10px;
+      }
+      .actions .btn.small {
+        width: 100%;
+        min-height: 48px;
+        font-size: 15px;
+        padding: 12px 14px;
+      }
+      .muted { font-size: 11px; line-height: 1.45; }
+      .status { font-size: 0.9rem; padding: 12px; }
+      .pill { font-size: 12px; padding: 6px 10px; }
+      #pending-rows .tr.tr-empty > div::before,
+      #rows .tr.tr-empty > div::before {
+        content: none !important;
+        display: none !important;
+        margin: 0 !important;
       }
     }
   </style>
@@ -247,7 +395,7 @@
           <h2>Pending approvals</h2>
           <p class="sub">Users submitted details and are waiting. Approve after you confirm payment in M-Pesa.</p>
         </div>
-        <button type="button" id="refresh-pending-btn" class="btn secondary" style="max-width:200px;margin:0;">Refresh now</button>
+        <button type="button" id="refresh-pending-btn" class="btn secondary section-action-btn">Refresh now</button>
       </div>
       <div class="table">
         <div class="thead">
@@ -266,7 +414,7 @@
           <h2>Recently granted</h2>
           <p class="sub">Latest rows in <code style="font-size:12px;color:var(--muted)">signups</code>.</p>
         </div>
-        <button type="button" id="refresh-btn" class="btn secondary" style="max-width:160px;margin:0;">Refresh</button>
+        <button type="button" id="refresh-btn" class="btn secondary section-action-btn">Refresh</button>
       </div>
       <div class="table">
         <div class="thead">
@@ -546,7 +694,7 @@
       );
       touchSync();
       if (!res.ok) {
-        root.innerHTML = '<div class="tr" data-label="Pending"><div colspan="4">Could not load pending requests.</div></div>';
+        root.innerHTML = '<div class="tr tr-empty" data-label="Pending"><div>Could not load pending requests.</div></div>';
         document.getElementById("pending-badge").textContent = "?";
         return;
       }
@@ -555,7 +703,7 @@
       maybeNotifyPending(rows.length, rows);
 
       if (!rows.length) {
-        root.innerHTML = '<div class="tr" data-label="Pending"><div style="grid-column:1/-1;color:var(--muted);">No pending requests.</div></div>';
+        root.innerHTML = '<div class="tr tr-empty" data-label="Pending"><div style="color:var(--muted);">No pending requests.</div></div>';
         return;
       }
       for (var i = 0; i < rows.length; i++) {
@@ -618,12 +766,12 @@
       );
       touchSync();
       if (!res.ok) {
-        rowsRoot.innerHTML = '<div class="tr" data-label="Granted"><div>Could not load.</div></div>';
+        rowsRoot.innerHTML = '<div class="tr tr-empty" data-label="Granted"><div>Could not load.</div></div>';
         return;
       }
       var rows = await res.json();
       if (!rows.length) {
-        rowsRoot.innerHTML = '<div class="tr" data-label="Granted"><div style="color:var(--muted);">No signups yet.</div></div>';
+        rowsRoot.innerHTML = '<div class="tr tr-empty" data-label="Granted"><div style="color:var(--muted);">No signups yet.</div></div>';
         return;
       }
       for (var i = 0; i < rows.length; i++) {
