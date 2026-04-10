@@ -370,25 +370,18 @@
     </div>
 
     <div class="card">
-      <h2>Manual entry (from SMS / message)</h2>
-      <p class="sub">Use when you verified payment outside the queue, or after copying details from a pending row.</p>
-      <div class="grid">
-        <div class="field">
-          <label for="admin-name">Customer name</label>
-          <input id="admin-name" type="text" placeholder="e.g. Tevin Fedha" autocomplete="name" />
-        </div>
-        <div class="field">
-          <label for="admin-phone">Phone (M-Pesa)</label>
-          <input id="admin-phone" type="tel" placeholder="0725… or 254…" autocomplete="tel" />
-        </div>
-      </div>
+      <h2>Verify Transaction Code</h2>
+      <p class="sub">Enter the M-Pesa transaction code to fetch user details and approve access.</p>
       <div class="field">
         <label for="admin-code">M-Pesa confirmation code</label>
         <input id="admin-code" type="text" maxlength="12" placeholder="10 characters, e.g. UDA2H0RV4V" spellcheck="false" autocomplete="off" />
       </div>
       <div class="row">
-        <button type="button" id="grant-btn" class="btn">Grant access</button>
-        <button type="button" id="check-btn" class="btn secondary">Check access only</button>
+        <button type="button" id="lookup-btn" class="btn">Lookup User</button>
+      </div>
+      <div id="lookup-details" class="status" style="display:none;background:rgba(29, 158, 117, 0.1);border-color:rgba(29, 158, 117, 0.35);margin-top:14px;">
+        <div id="lookup-info" style="margin-bottom:12px;font-size:14px;"></div>
+        <button type="button" id="confirm-grant-btn" class="btn small" style="width:100%;">Confirm & Grant Access</button>
       </div>
       <div id="status" class="status"></div>
     </div>
@@ -511,27 +504,13 @@
       el.textContent = msg;
     }
 
-    function collectInput() {
-      var name = document.getElementById("admin-name").value.trim();
-      var phone = normalizePhone(document.getElementById("admin-phone").value.trim());
+    var currentLookupUser = null;
+
+    function getCodeInput() {
       var code = document.getElementById("admin-code").value.replace(/\s/g, "").toUpperCase();
       document.getElementById("admin-code").value = code;
-
-      if (name.length < 2) throw new Error("Enter the customer name.");
-      if (!PHONE_REGEX.test(phone)) throw new Error("Enter a valid Kenyan phone number.");
       if (!MPESA_CODE_REGEX.test(code)) throw new Error("Enter the 10-character M-Pesa code.");
-
-      return { name: name, phone: phone, code: code };
-    }
-
-    function collectInputLoose() {
-      var name = document.getElementById("admin-name").value.trim();
-      var phone = normalizePhone(document.getElementById("admin-phone").value.trim());
-      var code = document.getElementById("admin-code").value.replace(/\s/g, "").toUpperCase();
-      document.getElementById("admin-code").value = code;
-      if (!PHONE_REGEX.test(phone)) throw new Error("Enter a valid Kenyan phone number.");
-      if (!MPESA_CODE_REGEX.test(code)) throw new Error("Enter the 10-character M-Pesa code.");
-      return { name: name.length >= 2 ? name : "", phone: phone, code: code };
+      return code;
     }
 
     async function ensureCodeUsed(code) {
@@ -619,14 +598,54 @@
       });
     }
 
-    async function grantAccess() {
+    async function lookupUser() {
+      try {
+        setStatus("warn", "Looking up…");
+        document.getElementById("lookup-details").style.display = "none";
+        currentLookupUser = null;
+        var code = getCodeInput();
+
+        var res = await fetch(
+          SUPABASE_URL + "/rest/v1/payment_requests?mpesa_code=eq." + encodeURIComponent(code) + "&select=id,name,phone,status&limit=1",
+          { headers: headers() }
+        );
+        if (!res.ok) throw new Error("Lookup failed.");
+        var rows = await res.json();
+        
+        if (!rows.length) {
+          setStatus("err", "No pending request found for this transaction code.");
+          return;
+        }
+
+        currentLookupUser = rows[0];
+        document.getElementById("lookup-info").innerHTML = 
+          "<strong>User Details Found:</strong><br>" + 
+          "Name: " + (currentLookupUser.name || "—") + "<br>" + 
+          "Phone: " + displayPhone(currentLookupUser.phone) + "<br>" +
+          "Status: " + currentLookupUser.status.toUpperCase();
+        
+        document.getElementById("lookup-details").style.display = "block";
+        setStatus("ok", "User found. Confirm details to grant access.");
+
+      } catch (err) {
+        setStatus("err", err.message || "Failed to lookup.");
+      }
+    }
+
+    async function confirmGrantAccess() {
+      if (!currentLookupUser) return;
       try {
         setStatus("warn", "Saving…");
-        var payload = collectInput();
+        var payload = {
+          name: currentLookupUser.name,
+          phone: currentLookupUser.phone,
+          code: currentLookupUser.mpesa_code || getCodeInput()
+        };
         await ensureCodeUsed(payload.code);
         var inserted = await ensureSignup(payload.name, payload.phone, payload.code);
         await markRequestApproved(payload.phone, payload.code, payload.name);
         await refreshAll();
+        document.getElementById("lookup-details").style.display = "none";
         setStatus(
           "ok",
           inserted
@@ -682,11 +701,10 @@
     }
 
     function fillFormFromPending(name, phone, code) {
-      document.getElementById("admin-name").value = (name && String(name).trim()) ? String(name).trim() : "";
-      document.getElementById("admin-phone").value = displayPhone(phone);
       document.getElementById("admin-code").value = (code || "").toUpperCase();
-      setStatus("warn", "Form filled — confirm payment, then click Grant access.");
+      setStatus("warn", "Looking up the user details...");
       window.scrollTo({ top: 0, behavior: "smooth" });
+      lookupUser();
     }
 
     async function loadPending() {
@@ -742,24 +760,7 @@
       }
     }
 
-    async function checkAccess() {
-      try {
-        var payload = collectInputLoose();
-        var res = await fetch(
-          SUPABASE_URL + "/rest/v1/signups?mpesa_code=eq." + encodeURIComponent(payload.code) + "&phone=eq." + encodeURIComponent(payload.phone) + "&select=id&limit=1",
-          { headers: headers() }
-        );
-        if (!res.ok) throw new Error("Could not check access.");
-        var rows = await res.json();
-        if (rows.length) {
-          setStatus("ok", "Access record exists for this phone + code.");
-        } else {
-          setStatus("warn", "No signup yet for this phone + code.");
-        }
-      } catch (err) {
-        setStatus("err", err.message || "Check failed.");
-      }
-    }
+    // Removed checkAccess
 
     async function loadRecent() {
       var rowsRoot = document.getElementById("rows");
@@ -806,8 +807,8 @@
       document.getElementById("live-label").textContent = "Auto-refresh every " + (POLL_MS / 1000) + "s";
     }
 
-    document.getElementById("grant-btn").addEventListener("click", grantAccess);
-    document.getElementById("check-btn").addEventListener("click", checkAccess);
+    document.getElementById("lookup-btn").addEventListener("click", lookupUser);
+    document.getElementById("confirm-grant-btn").addEventListener("click", confirmGrantAccess);
     document.getElementById("refresh-btn").addEventListener("click", loadRecent);
     document.getElementById("refresh-pending-btn").addEventListener("click", refreshAll);
 

@@ -1012,25 +1012,20 @@
       setLoading(true);
 
       try {
-        const data = await verifyCode(code, name, phone);
+        // Automatically send users to pending state to await admin verification
+        const reqState = await createPaymentRequest(name, phone, code);
         setLoading(false);
-        if (data.valid) {
-          if (data.recovered) {
-            codeStatus.innerHTML = '<div class="dot" style="background:#1D9E75"></div><span style="color:#085041">Payment was already verified. Restoring your access ✓</span>';
-          }
+        if (reqState === "approved") {
+          // In case the user reloads or was already approved manually
+          codeStatus.innerHTML = '<div class="dot" style="background:#1D9E75"></div><span style="color:#085041">Payment was already verified. Restoring your access ✓</span>';
           showSuccess(code, phone);
-        } else {
-          const reqState = await createPaymentRequest(name, phone, code);
-          if (reqState === "approved") {
-            showSuccess(code, phone);
-            return;
-          }
-          codeStatus.innerHTML = '<div class="dot" style="background:#F5A623"></div><span style="color:#854F0B">Request sent to admin for manual approval</span>';
-          showAwaitingApproval(name, phone, code);
+          return;
         }
+        codeStatus.innerHTML = '<div class="dot" style="background:#F5A623"></div><span style="color:#854F0B">Request sent to admin for manual approval</span>';
+        showAwaitingApproval(name, phone, code);
       } catch (err) {
         setLoading(false);
-        showGlobalError("⚠️ We couldn't verify payment right now. Check your internet and try again in a moment.");
+        showGlobalError("⚠️ We couldn't submit your request right now. Check your internet and try again in a moment.");
       }
     }
 
