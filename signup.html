@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OpenWorld Chats — Join the Channel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap"
+    rel="stylesheet">
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --brand: #1A6B4A;
+      --brand-mid: #1D9E75;
+      --brand-light: #E1F5EE;
+      --brand-dark: #0F6E56;
+      --mpesa: #00A54F;
+      --accent: #F5A623;
+      --bg: #ffffff;
+      --bg2: #F7F9F8;
+      --fg: #1a1a1a;
+      --fg2: #5a6a65;
+      --border: rgba(0, 0, 0, 0.1);
+      --radius: 12px;
+      --radius-lg: 16px;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: #F0F5F3;
+      color: var(--fg);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0 0 3rem;
+    }
+
+    .page-wrap {
+      width: 100%;
+      max-width: 480px;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      background: linear-gradient(140deg, #0A5740 0%, #1D9E75 65%, #5DCAA5 100%);
+      padding: 3rem 2rem 2.5rem;
+      text-align: center;
+      border-radius: 0 0 2rem 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -60px;
+      right: -60px;
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .hero::after {
+      content: '';
+      position: absolute;
+      bottom: -40px;
+      left: -40px;
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .hero-badge {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.18);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 500;
+      padding: 4px 14px;
+      border-radius: 20px;
+      margin-bottom: 1.2rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .hero h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: 2.1rem;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.18;
+      margin-bottom: 0.8rem;
+    }
+
+    .hero-logo {
+      width: 86px;
+      height: 86px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid rgba(255, 255, 255, 0.22);
+      background: #fff;
+      margin: 0 auto 1rem;
+      display: block;
+    }
+
+    .hero p {
+      color: rgba(255, 255, 255, 0.82);
+      font-size: 1rem;
+      max-width: 320px;
+      margin: 0 auto 1.6rem;
+      line-height: 1.65;
+    }
+
+    .hero-price {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255, 255, 255, 0.14);
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      color: #fff;
+      border-radius: 14px;
+      padding: 0.6rem 1.4rem;
+    }
+
+    .hero-price .amount {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.8rem;
+      font-weight: 800;
+    }
+
+    .hero-price .label {
+      font-size: 0.78rem;
+      opacity: 0.82;
+      line-height: 1.3;
+      text-align: left;
+    }
+
+    /* ── FEATURES ── */
+    .features {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      padding: 1.4rem 1.2rem;
+    }
+
+    .feat {
+      background: var(--bg);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem 0.7rem;
+      text-align: center;
+    }
+
+    .feat-icon {
+      width: 28px;
+      height: 28px;
+      margin-bottom: 6px;
+      color: var(--brand-dark);
+      display: inline-block;
+      animation: iconFloat 2.8s ease-in-out infinite;
+      transform-origin: center;
+    }
+
+    .feat-icon svg {
+      width: 100%;
+      height: 100%;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .feat-icon.globe {
+      animation-delay: 0.2s;
+    }
+
+    .feat-icon.telegram {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes iconFloat {
+      0%,
+      100% {
+        transform: translateY(0);
+      }
+      50% {
+        transform: translateY(-4px);
+      }
+    }
+
+    .feat-title {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--fg);
+      margin-bottom: 3px;
+    }
+
+    .feat-sub {
+      font-size: 11px;
+      color: var(--fg2);
+      line-height: 1.4;
+    }
+
+    /* ── FORM CARD ── */
+    .form-section {
+      padding: 0 1.2rem 1.2rem;
+    }
+
+    .form-card {
+      background: var(--bg);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.6rem;
+      box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06);
+    }
+
+    .form-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--fg);
+      margin-bottom: 0.25rem;
+    }
+
+    .form-sub {
+      font-size: 13px;
+      color: var(--fg2);
+      margin-bottom: 1.4rem;
+      line-height: 1.5;
+    }
+
+    /* ── M-PESA BOX ── */
+    .mpesa-box {
+      background: #F0FAF5;
+      border: 1px solid #9FE1CB;
+      border-radius: var(--radius);
+      padding: 1rem 1.2rem;
+      margin-bottom: 1.4rem;
+    }
+
+    .mpesa-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+
+    .mpesa-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--mpesa);
+    }
+
+    .mpesa-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: #085041;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .mpesa-number {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: #0F6E56;
+      letter-spacing: 0.04em;
+      margin-bottom: 4px;
+    }
+
+    .mpesa-hint {
+      font-size: 12px;
+      color: #1D9E75;
+    }
+
+    /* ── STEPS ── */
+    .steps {
+      margin-bottom: 1.4rem;
+    }
+
+    .step {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .step-num {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--brand-mid);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .step-text {
+      font-size: 13px;
+      color: var(--fg2);
+      line-height: 1.55;
+    }
+
+    .step-text strong {
+      color: var(--fg);
+      font-weight: 500;
+    }
+
+    /* ── FIELDS ── */
+    .field {
+      margin-bottom: 1rem;
+    }
+
+    .field label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--fg2);
+      margin-bottom: 5px;
+    }
+
+    .field input {
+      width: 100%;
+      padding: 11px 13px;
+      border-radius: 9px;
+      border: 1px solid var(--border);
+      background: var(--bg2);
+      color: var(--fg);
+      font-size: 14px;
+      font-family: 'DM Sans', sans-serif;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .field input:focus {
+      border-color: var(--brand-mid);
+      box-shadow: 0 0 0 3px rgba(29, 158, 117, 0.14);
+      background: #fff;
+    }
+
+    .field input.error {
+      border-color: #E24B4A;
+      box-shadow: 0 0 0 3px rgba(226, 75, 74, 0.12);
+    }
+
+    .field .field-hint {
+      font-size: 11px;
+      color: var(--fg2);
+      margin-top: 4px;
+    }
+
+    .field .field-err {
+      font-size: 11px;
+      color: #E24B4A;
+      margin-top: 4px;
+      display: none;
+    }
+
+    /* ── CODE FIELD SPECIAL ── */
+    #mpesa-code {
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-family: 'Courier New', monospace;
+      font-size: 15px;
+    }
+
+    .code-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 5px;
+      font-size: 12px;
+      min-height: 18px;
+    }
+
+    .code-status .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    /* ── CTA BUTTON ── */
+    .cta-btn {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, var(--brand-dark), var(--brand-mid));
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-family: 'Syne', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 0.4rem;
+    }
+
+    .cta-btn:hover {
+      opacity: 0.92;
+    }
+
+    .cta-btn:active {
+      transform: scale(0.98);
+    }
+
+    .cta-btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .global-err {
+      font-size: 13px;
+      color: #E24B4A;
+      background: #FDF1F1;
+      border: 1px solid #F7C1C1;
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin-top: 10px;
+      display: none;
+      text-align: center;
+    }
+
+    /* ── SPINNER ── */
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255, 255, 255, 0.35);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: none;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* ── SUCCESS ── */
+    .success-screen {
+      display: none;
+      text-align: center;
+      padding: 2rem 1.4rem;
+    }
+
+    .success-icon {
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      background: var(--brand-light);
+      margin: 0 auto 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .success-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--fg);
+      margin-bottom: 0.5rem;
+    }
+
+    .success-sub {
+      font-size: 14px;
+      color: var(--fg2);
+      margin-bottom: 1.6rem;
+      line-height: 1.65;
+      max-width: 300px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .telegram-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      background: #229ED9;
+      color: #fff;
+      border-radius: 10px;
+      padding: 14px 24px;
+      font-family: 'Syne', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      text-decoration: none;
+      width: 100%;
+      transition: opacity 0.2s;
+    }
+
+    .telegram-btn:hover {
+      opacity: 0.9;
+    }
+
+    .success-note {
+      font-size: 12px;
+      color: var(--fg2);
+      margin-top: 1rem;
+    }
+
+    /* ── TRUST BAR ── */
+    .trust-bar {
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      padding: 0.8rem 1rem 2rem;
+      flex-wrap: wrap;
+    }
+
+    .trust-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      color: var(--fg2);
+    }
+
+    .trust-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--brand-mid);
+    }
+
+    /* ── NOTICE ── */
+    .dev-notice {
+      background: #FAEEDA;
+      border: 1px solid #FAC775;
+      border-radius: 10px;
+      padding: 10px 14px;
+      margin: 0 1.2rem 1rem;
+      font-size: 12px;
+      color: #633806;
+      line-height: 1.5;
+    }
+
+    .dev-notice strong {
+      font-weight: 500;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page-wrap">
+
+    <!-- HERO -->
+    <div class="hero">
+      <div class="hero-badge">Online Course</div>
+      <img class="hero-logo"
+        src="./Logo.png"
+        alt="OpenWorld Chats logo" />
+      <h1>Chat Confidently<br>With Foreigners</h1>
+      <p>Learn natural, real-world conversation skills to connect with people from around the world.</p>
+      <div class="hero-price">
+        <div class="amount">$3</div>
+        <div class="label">One-time<br>access fee</div>
+      </div>
+    </div>
+
+    <!-- FEATURES -->
+    <div class="features">
+      <div class="feat">
+        <div class="feat-icon chat" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <path d="M20 14a4 4 0 0 1-4 4H9l-4 3v-3H4a3 3 0 0 1-3-3V6a3 3 0 0 1 3-3h12a4 4 0 0 1 4 4z" />
+          </svg>
+        </div>
+        <div class="feat-title">Real scripts</div>
+        <div class="feat-sub">Phrases that actually work</div>
+      </div>
+      <div class="feat">
+        <div class="feat-icon globe" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="9" />
+            <path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18" />
+          </svg>
+        </div>
+        <div class="feat-title">Global tips</div>
+        <div class="feat-sub">Culture & context</div>
+      </div>
+      <div class="feat">
+        <div class="feat-icon telegram" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <path d="M21.5 3.5L2.8 10.8a1 1 0 0 0 .1 1.9l4.9 1.5 1.8 5.2a1 1 0 0 0 1.8.3l2.7-3.4 4.8 3.5a1 1 0 0 0 1.6-.6L22.7 4.6a1 1 0 0 0-1.2-1.1z" />
+          </svg>
+        </div>
+        <div class="feat-title">Telegram</div>
+        <div class="feat-sub">Active community</div>
+      </div>
+    </div>
+
+    <!-- DEV NOTICE -->
+    <div class="dev-notice">
+      <strong>Setup reminder:</strong> Replace the M-Pesa number and Telegram link before going live. See comments in
+      the HTML source.
+    </div>
+
+    <!-- FORM -->
+    <div class="form-section">
+      <div class="form-card" id="signup-form">
+        <div class="form-title">Join the channel</div>
+        <div class="form-sub">Pay $3 via M-Pesa then fill in your details below to get instant access.</div>
+
+        <!-- M-PESA PAYMENT BOX -->
+        <div class="mpesa-box">
+          <div class="mpesa-header">
+            <div class="mpesa-dot"></div>
+            <!--
+              =============================================
+              REPLACE: Change label to "Paybill" or "Till" as appropriate
+              =============================================
+            -->
+            <div class="mpesa-label">M-Pesa Till Number</div>
+          </div>
+          <!--
+            =============================================
+            REPLACE: Your actual M-Pesa Till / Paybill number
+            =============================================
+          -->
+          <div class="mpesa-number">5317037</div>
+          <!--
+            =============================================
+            REPLACE: Set the correct KES amount (approx $3 equivalent)
+            and your brand/business name
+            =============================================
+          -->
+          <div class="mpesa-hint">Amount: KES 390 &nbsp;·&nbsp; Name: OpenWorld Chats</div>
+        </div>
+
+        <!-- STEPS -->
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-text">Open M-Pesa → <strong>Lipa na M-Pesa → Buy Goods & Services</strong> and pay the
+              amount above</div>
+          </div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-text">You'll receive an SMS. Copy the <strong>10-character transaction code</strong> (e.g.
+              RGH7K2WXYZ)</div>
+          </div>
+          <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-text">Fill in your details and paste the code below — your Telegram link appears instantly
+            </div>
+          </div>
+        </div>
+
+        <!-- FIELDS -->
+        <div class="field">
+          <label for="name">Full name</label>
+          <input type="text" id="name" placeholder="e.g. Amara Osei" autocomplete="name" />
+          <div class="field-err" id="name-err">Please enter your name.</div>
+        </div>
+
+        <div class="field">
+          <label for="phone">M-Pesa phone number</label>
+          <input type="tel" id="phone" placeholder="e.g. 0712 345 678" autocomplete="tel" />
+          <div class="field-err" id="phone-err">Please enter a valid Kenyan phone number.</div>
+        </div>
+
+        <div class="field">
+          <label for="mpesa-code">M-Pesa transaction code</label>
+          <input type="text" id="mpesa-code" placeholder="e.g. RGH7K2WXYZ" maxlength="12" autocomplete="off"
+            spellcheck="false" />
+          <div class="field-hint">10 characters — letters and numbers only, from your M-Pesa SMS</div>
+          <div class="code-status" id="code-status"></div>
+          <div class="field-err" id="code-err">Please enter a valid M-Pesa transaction code.</div>
+        </div>
+
+        <!-- CTA -->
+        <button class="cta-btn" id="submit-btn" onclick="handleSubmit()">
+          <span id="btn-text">Confirm & Get Access</span>
+          <div class="spinner" id="spinner"></div>
+          <span id="btn-arrow">→</span>
+        </button>
+        <div class="global-err" id="global-err"></div>
+      </div>
+
+      <!-- SUCCESS -->
+      <div class="success-screen" id="success-screen">
+        <div class="success-icon">
+          <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+            <circle cx="18" cy="18" r="18" fill="#1D9E75" />
+            <polyline points="10,18 16,24 26,12" fill="none" stroke="#fff" stroke-width="2.8" stroke-linecap="round"
+              stroke-linejoin="round" />
+          </svg>
+        </div>
+        <div class="success-title">You're in!</div>
+        <div class="success-sub">Payment confirmed. Tap below to join the Telegram channel and start learning how to
+          chat with foreigners.</div>
+        <!--
+          =============================================
+          REPLACE: Your actual Telegram channel invite link
+          =============================================
+        -->
+        <a class="telegram-btn" id="telegram-btn" href="#" target="_blank" rel="noopener">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M21.8 2.3L1.2 10.1c-1.4.6-1.4 1.4-.2 1.8l5.2 1.6 2 6.3c.3.7.1 1 .9.9l3.1-2.9 5.2 4c.9.6 1.6.3 1.8-.8L23 3.5c.4-1.5-.5-2.1-1.2-1.2z"
+              fill="#fff" />
+          </svg>
+          Join Telegram Channel
+        </a>
+        <div class="success-note">Welcome! We can't wait to see you thrive 🌍</div>
+      </div>
+    </div>
+
+    <!-- TRUST BAR -->
+    <div class="trust-bar">
+      <div class="trust-item">
+        <div class="trust-dot"></div>Real people, real results
+      </div>
+      <div class="trust-item">
+        <div class="trust-dot"></div>Secure M-Pesa payment
+      </div>
+      <div class="trust-item">
+        <div class="trust-dot"></div>Instant Telegram access
+      </div>
+    </div>
+
+  </div><!-- /page-wrap -->
+
+  <script>
+    // =============================================
+    // SUPABASE CONFIGURATION
+    // =============================================
+    var SUPABASE_URL = "https://gwgfrcwwawbewsobvels.supabase.co";
+    var SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3Z2ZyY3d3YXdiZXdzb2J2ZWxzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4MDY2MDEsImV4cCI6MjA5MTM4MjYwMX0.--HWAMEnDn27XsdtuWVn4Teij5sbOsr1UdlLcn62GQc";
+    var TELEGRAM_INVITE_URL = "https://t.me/+6wpjrh63b_MzNGE0";
+    var ACCESS_STORAGE_KEY = "owc_paid_access_v1";
+    var ACCESS_TTL_MS = 1000 * 60 * 60 * 24 * 30; // 30 days
+
+    async function verifyCode(code, name, phone) {
+      var headers = {
+        "apikey": SUPABASE_ANON_KEY,
+        "Authorization": "Bearer " + SUPABASE_ANON_KEY,
+        "Content-Type": "application/json"
+      };
+
+      // 1. Check if code exists and is currently unused
+      const checkRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/mpesa_codes?code=eq.${encodeURIComponent(code)}&status=eq.unused&select=id`,
+        {
+          headers: headers
+        }
+      );
+      if (!checkRes.ok) throw new Error("Failed to validate payment code.");
+      const codes = await checkRes.json();
+
+      if (codes.length !== 1) {
+        return { valid: false, reason: "not_found_or_used" };
+      }
+
+      // 2. Try to atomically reserve this code so only one person can use it.
+      const useRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/mpesa_codes?code=eq.${encodeURIComponent(code)}&status=eq.unused`,
+        {
+          method: "PATCH",
+          headers: {
+            "apikey": SUPABASE_ANON_KEY,
+            "Authorization": "Bearer " + SUPABASE_ANON_KEY,
+            "Content-Type": "application/json",
+            "Prefer": "return=representation"
+          },
+          body: JSON.stringify({ status: "used" })
+        }
+      );
+      if (!useRes.ok) throw new Error("Failed to reserve payment code.");
+      const updated = await useRes.json();
+      if (!updated || updated.length !== 1) {
+        return { valid: false, reason: "already_used" };
+      }
+
+      // 3. Log the signup
+      const signupRes = await fetch(`${SUPABASE_URL}/rest/v1/signups`, {
+        method: "POST",
+        headers: headers,
+        body: JSON.stringify({
+          name: name,
+          phone: phone,
+          mpesa_code: code
+        })
+      });
+      if (!signupRes.ok) throw new Error("Failed to save signup details.");
+
+      return { valid: true };
+    }
+
+    // M-Pesa transaction code format: 10 alphanumeric characters
+    var MPESA_CODE_REGEX = /^[A-Z0-9]{10}$/;
+    // Kenyan phone number formats
+    var PHONE_REGEX = /^(?:254|\+254|0)?(7[0-9]{8}|1[0-9]{8})$/;
+
+    var codeInput = document.getElementById('mpesa-code');
+    var codeStatus = document.getElementById('code-status');
+
+    // Live format validation as user types
+    codeInput.addEventListener('input', function () {
+      var val = this.value.replace(/\s/g, '').toUpperCase();
+      this.value = val;
+      clearFieldError('mpesa-code', 'code-err');
+
+      if (val.length === 0) {
+        codeStatus.innerHTML = '';
+        return;
+      }
+
+      if (val.length < 10) {
+        codeStatus.innerHTML = '<div class="dot" style="background:#F5A623"></div><span style="color:#854F0B">' + val.length + '/10 characters entered</span>';
+      } else if (MPESA_CODE_REGEX.test(val)) {
+        codeStatus.innerHTML = '<div class="dot" style="background:#1D9E75"></div><span style="color:#085041">Format looks good ✓</span>';
+      } else {
+        codeStatus.innerHTML = '<div class="dot" style="background:#E24B4A"></div><span style="color:#A32D2D">Invalid characters — use letters and numbers only</span>';
+      }
+    });
+
+    function showFieldError(inputId, errId, msg) {
+      var input = document.getElementById(inputId);
+      var err = document.getElementById(errId);
+      if (input) input.classList.add('error');
+      if (err) { err.textContent = msg; err.style.display = 'block'; }
+    }
+
+    function clearFieldError(inputId, errId) {
+      var input = document.getElementById(inputId);
+      var err = document.getElementById(errId);
+      if (input) input.classList.remove('error');
+      if (err) err.style.display = 'none';
+    }
+
+    function setLoading(on) {
+      var btn = document.getElementById('submit-btn');
+      var spinner = document.getElementById('spinner');
+      var btnText = document.getElementById('btn-text');
+      var btnArrow = document.getElementById('btn-arrow');
+      btn.disabled = on;
+      spinner.style.display = on ? 'block' : 'none';
+      btnArrow.style.display = on ? 'none' : 'inline';
+      btnText.textContent = on ? 'Verifying payment…' : 'Confirm & Get Access';
+    }
+
+    function showGlobalError(msg) {
+      var el = document.getElementById('global-err');
+      el.textContent = msg;
+      el.style.display = 'block';
+    }
+
+    function hideGlobalError() {
+      document.getElementById('global-err').style.display = 'none';
+    }
+
+    function normalizePhone(rawPhone) {
+      var phone = (rawPhone || '').replace(/[^\d+]/g, '');
+      if (phone.indexOf('+254') === 0) return '254' + phone.slice(4);
+      if (phone.indexOf('254') === 0) return phone;
+      if (phone.indexOf('0') === 0) return '254' + phone.slice(1);
+      return phone;
+    }
+
+    function validateForm() {
+      var valid = true;
+      hideGlobalError();
+
+      var name = document.getElementById('name').value.trim();
+      if (!name || name.length < 2) {
+        showFieldError('name', 'name-err', 'Please enter your full name.');
+        valid = false;
+      } else clearFieldError('name', 'name-err');
+
+      var phone = normalizePhone(document.getElementById('phone').value.trim());
+      if (!PHONE_REGEX.test(phone)) {
+        showFieldError('phone', 'phone-err', 'Please enter a valid Kenyan phone number (e.g. 0712345678).');
+        valid = false;
+      } else clearFieldError('phone', 'phone-err');
+
+      var code = document.getElementById('mpesa-code').value.trim().toUpperCase();
+      if (!MPESA_CODE_REGEX.test(code)) {
+        showFieldError('mpesa-code', 'code-err', 'Enter the 10-character code from your M-Pesa SMS (letters and numbers only).');
+        valid = false;
+        codeStatus.innerHTML = '';
+      } else clearFieldError('mpesa-code', 'code-err');
+
+      return valid;
+    }
+
+    async function handleSubmit() {
+      if (!validateForm()) return;
+
+      var code = document.getElementById('mpesa-code').value.trim().toUpperCase();
+      var name = document.getElementById('name').value.trim();
+      var phone = normalizePhone(document.getElementById('phone').value.trim());
+
+      setLoading(true);
+
+      try {
+        const data = await verifyCode(code, name, phone);
+        setLoading(false);
+        if (data.valid) {
+          showSuccess(code, phone);
+        } else {
+          var errorMsg = "❌ Transaction code not found or already used. Please double-check the code from your M-Pesa SMS. If you haven't paid yet, please do so first.";
+          if (data.reason === "already_used") {
+            errorMsg = "❌ That transaction code was already claimed. If this is your payment, contact support with your code.";
+          }
+          showGlobalError(errorMsg);
+          codeStatus.innerHTML = '<div class="dot" style="background:#E24B4A"></div><span style="color:#A32D2D">Payment code is invalid or already used</span>';
+        }
+      } catch (err) {
+        setLoading(false);
+        showGlobalError("⚠️ We couldn't verify payment right now. Check your internet and try again in a moment.");
+      }
+    }
+
+    function saveAccessSession(code, phone) {
+      try {
+        var payload = {
+          granted_at: Date.now(),
+          code_last4: code.slice(-4),
+          phone_last4: phone.slice(-4)
+        };
+        localStorage.setItem(ACCESS_STORAGE_KEY, JSON.stringify(payload));
+      } catch (e) {}
+    }
+
+    function hasActiveAccessSession() {
+      try {
+        var raw = localStorage.getItem(ACCESS_STORAGE_KEY);
+        if (!raw) return false;
+        var parsed = JSON.parse(raw);
+        if (!parsed || !parsed.granted_at) return false;
+        return (Date.now() - parsed.granted_at) < ACCESS_TTL_MS;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    function showSuccess(code, phone) {
+      var signupForm = document.getElementById('signup-form');
+      var successScreen = document.getElementById('success-screen');
+      var telegramBtn = document.getElementById('telegram-btn');
+      telegramBtn.href = TELEGRAM_INVITE_URL;
+      signupForm.style.display = 'none';
+      successScreen.style.display = 'block';
+      if (code && phone) saveAccessSession(code, phone);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    if (hasActiveAccessSession()) {
+      showSuccess();
+    }
+  </script>
+  <!-- Vanta GLOBE Effects -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.globe.min.js"></script>
+  <script>
+    VANTA.GLOBE({
+      el: "body",
+      mouseControls: true,
+      touchControls: true,
+      gyroControls: false,
+      minHeight: 200.00,
+      minWidth: 200.00,
+      scale: 1.00,
+      scaleMobile: 1.00,
+      color: 0x3fff8e,
+      size: 1.60,
+      backgroundColor: 0x0
+    })
+  </script>
+</body>
+
+</html>
