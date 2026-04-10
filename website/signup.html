@@ -573,7 +573,7 @@
     <div class="hero">
       <div class="hero-badge">Online Course</div>
       <img class="hero-logo"
-        src="./Logo.png"
+        src="./assets/Logo.png"
         alt="OpenWorld Chats logo" />
       <h1>Chat Confidently<br>With Foreigners</h1>
       <p>Learn natural, real-world conversation skills to connect with people from around the world.</p>
@@ -724,6 +724,22 @@
         </a>
         <div class="success-note">Welcome! We can't wait to see you thrive 🌍</div>
       </div>
+
+      <!-- AWAITING APPROVAL -->
+      <div class="success-screen" id="awaiting-screen">
+        <div class="success-icon">
+          <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+            <circle cx="18" cy="18" r="18" fill="#F5A623" />
+            <path d="M18 9v10m0 6h.01" stroke="#fff" stroke-width="2.8" stroke-linecap="round" />
+          </svg>
+        </div>
+        <div class="success-title">Awaiting Payment Approval</div>
+        <div class="success-sub">
+          Your request has been sent to the administrator. Please wait while payment is confirmed.
+          This page will auto-update once approved.
+        </div>
+        <div class="success-note" id="awaiting-note">Status: Pending admin confirmation.</div>
+      </div>
     </div>
 
     <!-- TRUST BAR -->
@@ -750,6 +766,17 @@
     var TELEGRAM_INVITE_URL = "https://t.me/+6wpjrh63b_MzNGE0";
     var ACCESS_STORAGE_KEY = "owc_paid_access_v1";
     var ACCESS_TTL_MS = 1000 * 60 * 60 * 24 * 30; // 30 days
+    var approvalPollTimer = null;
+
+    async function hasExistingAccess(code, phone, headers) {
+      const existingRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/signups?mpesa_code=eq.${encodeURIComponent(code)}&phone=eq.${encodeURIComponent(phone)}&select=id&limit=1`,
+        { headers: headers }
+      );
+      if (!existingRes.ok) return false;
+      const rows = await existingRes.json();
+      return !!(rows && rows.length);
+    }
 
     async function verifyCode(code, name, phone) {
       var headers = {
@@ -769,6 +796,11 @@
       const codes = await checkRes.json();
 
       if (codes.length !== 1) {
+        // Recovery path: user already paid earlier and is retrying access.
+        const alreadyHasAccess = await hasExistingAccess(code, phone, headers);
+        if (alreadyHasAccess) {
+          return { valid: true, recovered: true };
+        }
         return { valid: false, reason: "not_found_or_used" };
       }
 
@@ -789,6 +821,10 @@
       if (!useRes.ok) throw new Error("Failed to reserve payment code.");
       const updated = await useRes.json();
       if (!updated || updated.length !== 1) {
+        const alreadyHasAccess = await hasExistingAccess(code, phone, headers);
+        if (alreadyHasAccess) {
+          return { valid: true, recovered: true };
+        }
         return { valid: false, reason: "already_used" };
       }
 
@@ -802,9 +838,71 @@
           mpesa_code: code
         })
       });
-      if (!signupRes.ok) throw new Error("Failed to save signup details.");
+      if (!signupRes.ok) {
+        // If insert fails (e.g. duplicate), allow access when record already exists.
+        const alreadyHasAccess = await hasExistingAccess(code, phone, headers);
+        if (alreadyHasAccess) {
+          return { valid: true, recovered: true };
+        }
+        throw new Error("Failed to save signup details.");
+      }
 
       return { valid: true };
+    }
+
+    async function createPaymentRequest(name, phone, code) {
+      const reqHeaders = headersWithAuth();
+      const checkRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/payment_requests?phone=eq.${encodeURIComponent(phone)}&mpesa_code=eq.${encodeURIComponent(code)}&select=id,status&limit=1`,
+        { headers: reqHeaders }
+      );
+      if (!checkRes.ok) throw new Error("Could not create request.");
+      const existing = await checkRes.json();
+
+      if (existing.length) {
+        if (existing[0].status === "approved") return "approved";
+        const patchRes = await fetch(
+          `${SUPABASE_URL}/rest/v1/payment_requests?id=eq.${existing[0].id}`,
+          {
+            method: "PATCH",
+            headers: reqHeaders,
+            body: JSON.stringify({ status: "pending", name: name, phone: phone, mpesa_code: code })
+          }
+        );
+        if (!patchRes.ok) throw new Error("Could not update request.");
+        return "pending";
+      }
+
+      const insertRes = await fetch(`${SUPABASE_URL}/rest/v1/payment_requests`, {
+        method: "POST",
+        headers: reqHeaders,
+        body: JSON.stringify({
+          name: name,
+          phone: phone,
+          mpesa_code: code,
+          status: "pending"
+        })
+      });
+      if (!insertRes.ok) throw new Error("Could not submit request.");
+      return "pending";
+    }
+
+    function headersWithAuth() {
+      return {
+        "apikey": SUPABASE_ANON_KEY,
+        "Authorization": "Bearer " + SUPABASE_ANON_KEY,
+        "Content-Type": "application/json"
+      };
+    }
+
+    async function isApprovalGranted(phone, code) {
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/payment_requests?phone=eq.${encodeURIComponent(phone)}&mpesa_code=eq.${encodeURIComponent(code)}&status=eq.approved&select=id&limit=1`,
+        { headers: headersWithAuth() }
+      );
+      if (!res.ok) return false;
+      const rows = await res.json();
+      return !!(rows && rows.length);
     }
 
     // M-Pesa transaction code format: 10 alphanumeric characters
@@ -917,14 +1015,18 @@
         const data = await verifyCode(code, name, phone);
         setLoading(false);
         if (data.valid) {
+          if (data.recovered) {
+            codeStatus.innerHTML = '<div class="dot" style="background:#1D9E75"></div><span style="color:#085041">Payment was already verified. Restoring your access ✓</span>';
+          }
           showSuccess(code, phone);
         } else {
-          var errorMsg = "❌ Transaction code not found or already used. Please double-check the code from your M-Pesa SMS. If you haven't paid yet, please do so first.";
-          if (data.reason === "already_used") {
-            errorMsg = "❌ That transaction code was already claimed. If this is your payment, contact support with your code.";
+          const reqState = await createPaymentRequest(name, phone, code);
+          if (reqState === "approved") {
+            showSuccess(code, phone);
+            return;
           }
-          showGlobalError(errorMsg);
-          codeStatus.innerHTML = '<div class="dot" style="background:#E24B4A"></div><span style="color:#A32D2D">Payment code is invalid or already used</span>';
+          codeStatus.innerHTML = '<div class="dot" style="background:#F5A623"></div><span style="color:#854F0B">Request sent to admin for manual approval</span>';
+          showAwaitingApproval(name, phone, code);
         }
       } catch (err) {
         setLoading(false);
@@ -956,14 +1058,44 @@
     }
 
     function showSuccess(code, phone) {
+      if (approvalPollTimer) {
+        clearInterval(approvalPollTimer);
+        approvalPollTimer = null;
+      }
       var signupForm = document.getElementById('signup-form');
       var successScreen = document.getElementById('success-screen');
+      var awaitingScreen = document.getElementById('awaiting-screen');
       var telegramBtn = document.getElementById('telegram-btn');
       telegramBtn.href = TELEGRAM_INVITE_URL;
       signupForm.style.display = 'none';
+      awaitingScreen.style.display = 'none';
       successScreen.style.display = 'block';
       if (code && phone) saveAccessSession(code, phone);
       window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function showAwaitingApproval(name, phone, code) {
+      var signupForm = document.getElementById('signup-form');
+      var successScreen = document.getElementById('success-screen');
+      var awaitingScreen = document.getElementById('awaiting-screen');
+      var awaitingNote = document.getElementById('awaiting-note');
+      signupForm.style.display = 'none';
+      successScreen.style.display = 'none';
+      awaitingScreen.style.display = 'block';
+      awaitingNote.textContent = 'Status: Pending admin confirmation for ' + name + '.';
+      setLoading(false);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      startApprovalPolling(phone, code);
+    }
+
+    function startApprovalPolling(phone, code) {
+      if (approvalPollTimer) clearInterval(approvalPollTimer);
+      approvalPollTimer = setInterval(async function () {
+        var approved = await isApprovalGranted(phone, code);
+        if (approved) {
+          showSuccess(code, phone);
+        }
+      }, 10000);
     }
 
     if (hasActiveAccessSession()) {

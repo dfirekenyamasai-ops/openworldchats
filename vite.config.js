@@ -5,8 +5,9 @@ module.exports = defineConfig({
   build: {
     rollupOptions: {
       input: {
-        main: resolve(__dirname, 'index.html'),
-        signup: resolve(__dirname, 'signup.html')
+        main: resolve(__dirname, 'website/index.html'),
+        signup: resolve(__dirname, 'website/signup.html'),
+        admin: resolve(__dirname, 'admin/index.html')
       }
     }
   }

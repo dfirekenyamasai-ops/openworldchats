@@ -2,7 +2,7 @@
   "name": "open-worldchat",
   "version": "1.0.0",
   "description": "",
-  "main": "signup.html",
+  "main": "website/signup.html",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
