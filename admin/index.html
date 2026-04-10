@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>OpenWorld Chats Admin</title>
+  <title>OpenWorld Chats — Admin</title>
   <style>
     :root {
       --bg: #0c1411;
@@ -27,9 +27,9 @@
     }
     .wrap {
       width: 100%;
-      max-width: 860px;
+      max-width: 900px;
       margin: 0 auto;
-      padding: 24px 16px 48px;
+      padding: 20px 14px 48px;
     }
     .card {
       background: var(--panel);
@@ -38,8 +38,37 @@
       padding: 16px;
       margin-bottom: 14px;
     }
-    h1 { margin: 0 0 8px; font-size: 24px; }
+    h1 { margin: 0 0 8px; font-size: 22px; }
+    h2 { margin: 0 0 6px; font-size: 17px; }
     .sub { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.5; }
+    .topbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px 16px;
+      margin-top: 12px;
+    }
+    .stat {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .stat strong { color: var(--text); font-size: 15px; }
+    .live-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--ok);
+      box-shadow: 0 0 0 2px rgba(34, 181, 115, 0.35);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    .live-dot.off { background: var(--muted); box-shadow: none; animation: none; }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.55; }
+    }
     .grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -73,6 +102,18 @@
       border-color: var(--line);
       font-weight: 600;
     }
+    .btn.danger {
+      background: transparent;
+      border-color: rgba(226, 91, 91, 0.5);
+      color: #f5a8a8;
+      font-weight: 600;
+    }
+    .btn.small {
+      margin-top: 0;
+      padding: 8px 10px;
+      font-size: 12px;
+      width: auto;
+    }
     .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .status {
       margin-top: 12px;
@@ -95,13 +136,19 @@
     }
     .thead, .tr {
       display: grid;
-      grid-template-columns: 1.2fr 1fr 1fr 1fr;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.35fr);
       gap: 8px;
       padding: 10px;
       font-size: 12px;
+      align-items: center;
     }
     .thead { background: rgba(255, 255, 255, 0.04); color: var(--muted); font-weight: 700; }
     .tr { border-top: 1px solid var(--line); }
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
     .pill {
       display: inline-block;
       padding: 3px 8px;
@@ -111,76 +158,103 @@
       border: 1px solid rgba(29, 158, 117, 0.35);
       color: #c7ffea;
     }
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
     @media (max-width: 720px) {
       .grid, .row { grid-template-columns: 1fr; }
-      .thead, .tr { grid-template-columns: 1fr 1fr; }
+      .thead { display: none; }
+      .tr {
+        grid-template-columns: 1fr;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        margin: 8px;
+        padding: 12px;
+      }
+      .tr::before {
+        content: attr(data-label);
+        font-weight: 700;
+        color: var(--muted);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
     }
   </style>
 </head>
 <body>
   <div class="wrap">
     <div class="card">
-      <h1>Admin Access Console</h1>
-      <p class="sub">Operator: Daniel Nao. Use this page to record a confirmed payment and grant Telegram access.</p>
-      <p class="muted">Tip: keep this page private. Anyone with this page + keys can grant access.</p>
+      <h1>Admin console</h1>
+      <p class="sub">Daniel Nao — confirm M-Pesa payments and approve users waiting for Telegram access.</p>
+      <div class="topbar">
+        <div class="stat"><span class="live-dot" id="live-dot" title="Auto-refresh"></span> <span id="live-label">Auto-refresh on</span></div>
+        <div class="stat">Pending: <strong id="pending-badge">—</strong></div>
+        <div class="stat">Updated: <strong id="last-sync">—</strong></div>
+      </div>
+      <p class="muted">Keep this URL private. Anyone with it can approve access if your Supabase policies allow writes.</p>
     </div>
 
     <div class="card">
+      <h2>Manual entry (from SMS / message)</h2>
+      <p class="sub">Use when you verified payment outside the queue, or after copying details from a pending row.</p>
       <div class="grid">
         <div class="field">
-          <label for="admin-name">Customer Full Name</label>
-          <input id="admin-name" type="text" placeholder="e.g. Tevin Fedha" />
+          <label for="admin-name">Customer name</label>
+          <input id="admin-name" type="text" placeholder="e.g. Tevin Fedha" autocomplete="name" />
         </div>
         <div class="field">
-          <label for="admin-phone">Customer Phone</label>
-          <input id="admin-phone" type="tel" placeholder="e.g. 0725907099" />
+          <label for="admin-phone">Phone (M-Pesa)</label>
+          <input id="admin-phone" type="tel" placeholder="0725… or 254…" autocomplete="tel" />
         </div>
       </div>
       <div class="field">
-        <label for="admin-code">M-Pesa Code</label>
-        <input id="admin-code" type="text" maxlength="12" placeholder="e.g. UDA2H0RV4V" />
+        <label for="admin-code">M-Pesa confirmation code</label>
+        <input id="admin-code" type="text" maxlength="12" placeholder="10 characters, e.g. UDA2H0RV4V" spellcheck="false" autocomplete="off" />
       </div>
       <div class="row">
-        <button id="grant-btn" class="btn">Grant Access</button>
-        <button id="check-btn" class="btn secondary">Check Existing Access</button>
+        <button type="button" id="grant-btn" class="btn">Grant access</button>
+        <button type="button" id="check-btn" class="btn secondary">Check access only</button>
       </div>
       <div id="status" class="status"></div>
     </div>
 
     <div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+      <div class="section-head">
         <div>
-          <h1 style="font-size:18px;margin-bottom:4px;">Pending Payment Approvals</h1>
-          <p class="sub">Requests submitted by users waiting for admin approval.</p>
+          <h2>Pending approvals</h2>
+          <p class="sub">Users submitted details and are waiting. Approve after you confirm payment in M-Pesa.</p>
         </div>
-        <button id="refresh-pending-btn" class="btn secondary" style="max-width:180px;margin:0;">Refresh Pending</button>
+        <button type="button" id="refresh-pending-btn" class="btn secondary" style="max-width:200px;margin:0;">Refresh now</button>
       </div>
-
       <div class="table">
         <div class="thead">
           <div>Name</div>
           <div>Phone</div>
-          <div>M-Pesa Code</div>
-          <div>Action</div>
+          <div>Code</div>
+          <div>Actions</div>
         </div>
         <div id="pending-rows"></div>
       </div>
     </div>
 
     <div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+      <div class="section-head">
         <div>
-          <h1 style="font-size:18px;margin-bottom:4px;">Recent Granted Access</h1>
-          <p class="sub">Latest signups from your system.</p>
+          <h2>Recently granted</h2>
+          <p class="sub">Latest rows in <code style="font-size:12px;color:var(--muted)">signups</code>.</p>
         </div>
-        <button id="refresh-btn" class="btn secondary" style="max-width:160px;margin:0;">Refresh</button>
+        <button type="button" id="refresh-btn" class="btn secondary" style="max-width:160px;margin:0;">Refresh</button>
       </div>
-
       <div class="table">
         <div class="thead">
           <div>Name</div>
           <div>Phone</div>
-          <div>M-Pesa Code</div>
+          <div>Code</div>
           <div>Status</div>
         </div>
         <div id="rows"></div>
@@ -191,8 +265,11 @@
   <script>
     var SUPABASE_URL = "https://gwgfrcwwawbewsobvels.supabase.co";
     var SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3Z2ZyY3d3YXdiZXdzb2J2ZWxzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4MDY2MDEsImV4cCI6MjA5MTM4MjYwMX0.--HWAMEnDn27XsdtuWVn4Teij5sbOsr1UdlLcn62GQc";
+    var ADMIN_OPERATOR = "Daniel Nao";
     var MPESA_CODE_REGEX = /^[A-Z0-9]{10}$/;
     var PHONE_REGEX = /^(?:254|\+254|0)?(7[0-9]{8}|1[0-9]{8})$/;
+    var POLL_MS = 8000;
+    var pollTimer = null;
 
     function headers() {
       return {
@@ -210,6 +287,17 @@
       return phone;
     }
 
+    function displayPhone(phone) {
+      if (!phone || String(phone).indexOf("254") !== 0) return phone || "—";
+      return "0" + String(phone).slice(3);
+    }
+
+    function touchSync() {
+      var el = document.getElementById("last-sync");
+      var d = new Date();
+      el.textContent = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+    }
+
     function setStatus(kind, msg) {
       var el = document.getElementById("status");
       el.className = "status " + kind;
@@ -219,14 +307,24 @@
     function collectInput() {
       var name = document.getElementById("admin-name").value.trim();
       var phone = normalizePhone(document.getElementById("admin-phone").value.trim());
-      var code = document.getElementById("admin-code").value.trim().toUpperCase();
+      var code = document.getElementById("admin-code").value.replace(/\s/g, "").toUpperCase();
       document.getElementById("admin-code").value = code;
 
-      if (name.length < 2) throw new Error("Enter a valid full name.");
+      if (name.length < 2) throw new Error("Enter the customer name.");
       if (!PHONE_REGEX.test(phone)) throw new Error("Enter a valid Kenyan phone number.");
-      if (!MPESA_CODE_REGEX.test(code)) throw new Error("Enter a valid 10-character M-Pesa code.");
+      if (!MPESA_CODE_REGEX.test(code)) throw new Error("Enter the 10-character M-Pesa code.");
 
       return { name: name, phone: phone, code: code };
+    }
+
+    function collectInputLoose() {
+      var name = document.getElementById("admin-name").value.trim();
+      var phone = normalizePhone(document.getElementById("admin-phone").value.trim());
+      var code = document.getElementById("admin-code").value.replace(/\s/g, "").toUpperCase();
+      document.getElementById("admin-code").value = code;
+      if (!PHONE_REGEX.test(phone)) throw new Error("Enter a valid Kenyan phone number.");
+      if (!MPESA_CODE_REGEX.test(code)) throw new Error("Enter the 10-character M-Pesa code.");
+      return { name: name.length >= 2 ? name : "", phone: phone, code: code };
     }
 
     async function ensureCodeUsed(code) {
@@ -261,6 +359,7 @@
     }
 
     async function ensureSignup(name, phone, code) {
+      var safeName = (name && name.trim().length >= 2) ? name.trim() : "Customer";
       var existing = await fetch(
         SUPABASE_URL + "/rest/v1/signups?mpesa_code=eq." + encodeURIComponent(code) + "&phone=eq." + encodeURIComponent(phone) + "&select=id&limit=1",
         { headers: headers() }
@@ -272,7 +371,7 @@
       var create = await fetch(SUPABASE_URL + "/rest/v1/signups", {
         method: "POST",
         headers: headers(),
-        body: JSON.stringify({ name: name, phone: phone, mpesa_code: code })
+        body: JSON.stringify({ name: safeName, phone: phone, mpesa_code: code })
       });
       if (!create.ok) throw new Error("Could not insert signup record.");
       return true;
@@ -285,15 +384,17 @@
       );
       if (!existing.ok) return;
       var rows = await existing.json();
+      var patchBody = {
+        status: "approved",
+        approved_by: ADMIN_OPERATOR
+      };
+      if (name && name.trim().length >= 2) patchBody.name = name.trim();
+
       if (rows.length) {
         await fetch(SUPABASE_URL + "/rest/v1/payment_requests?id=eq." + rows[0].id, {
           method: "PATCH",
           headers: headers(),
-          body: JSON.stringify({
-            status: "approved",
-            approved_by: "Daniel Nao",
-            name: name
-          })
+          body: JSON.stringify(patchBody)
         });
         return;
       }
@@ -302,29 +403,28 @@
         method: "POST",
         headers: headers(),
         body: JSON.stringify({
-          name: name,
+          name: (name && name.trim().length >= 2) ? name.trim() : "Customer",
           phone: phone,
           mpesa_code: code,
           status: "approved",
-          approved_by: "Daniel Nao"
+          approved_by: ADMIN_OPERATOR
         })
       });
     }
 
     async function grantAccess() {
       try {
-        setStatus("warn", "Processing payment record...");
+        setStatus("warn", "Saving…");
         var payload = collectInput();
         await ensureCodeUsed(payload.code);
         var inserted = await ensureSignup(payload.name, payload.phone, payload.code);
         await markRequestApproved(payload.phone, payload.code, payload.name);
-        await loadPending();
-        await loadRecent();
+        await refreshAll();
         setStatus(
           "ok",
           inserted
-            ? "Access granted. User can now verify and enter Telegram."
-            : "Access already existed for this phone + code. User can enter Telegram now."
+            ? "Access granted. User can open Telegram from the signup page."
+            : "Signup already existed. User should already have access."
         );
       } catch (err) {
         setStatus("err", err.message || "Failed to grant access.");
@@ -333,63 +433,110 @@
 
     async function approvePendingRequest(id, name, phone, code) {
       try {
-        setStatus("warn", "Approving request...");
+        setStatus("warn", "Approving…");
+        var safeName = (name && String(name).trim().length >= 2) ? String(name).trim() : "Customer";
         await ensureCodeUsed(code);
-        await ensureSignup(name, phone, code);
+        await ensureSignup(safeName, phone, code);
         var patch = await fetch(SUPABASE_URL + "/rest/v1/payment_requests?id=eq." + id, {
           method: "PATCH",
           headers: headers(),
           body: JSON.stringify({
             status: "approved",
-            approved_by: "Daniel Nao"
+            approved_by: ADMIN_OPERATOR,
+            name: safeName
           })
         });
-        if (!patch.ok) throw new Error("Could not mark request as approved.");
-        await loadPending();
-        await loadRecent();
-        setStatus("ok", "Approved successfully. User can now access Telegram.");
+        if (!patch.ok) throw new Error("Could not mark request approved.");
+        await refreshAll();
+        setStatus("ok", "Approved. User’s waiting screen should unlock shortly.");
       } catch (err) {
         setStatus("err", err.message || "Approval failed.");
       }
+    }
+
+    async function rejectPendingRequest(id) {
+      if (!confirm("Reject this request? The user stays blocked until they pay and submit again.")) return;
+      try {
+        setStatus("warn", "Rejecting…");
+        var patch = await fetch(SUPABASE_URL + "/rest/v1/payment_requests?id=eq." + id, {
+          method: "PATCH",
+          headers: headers(),
+          body: JSON.stringify({
+            status: "rejected",
+            approved_by: ADMIN_OPERATOR
+          })
+        });
+        if (!patch.ok) throw new Error("Could not reject request.");
+        await refreshAll();
+        setStatus("warn", "Request rejected.");
+      } catch (err) {
+        setStatus("err", err.message || "Reject failed.");
+      }
+    }
+
+    function fillFormFromPending(name, phone, code) {
+      document.getElementById("admin-name").value = (name && String(name).trim()) ? String(name).trim() : "";
+      document.getElementById("admin-phone").value = displayPhone(phone);
+      document.getElementById("admin-code").value = (code || "").toUpperCase();
+      setStatus("warn", "Form filled — confirm payment, then click Grant access.");
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
     async function loadPending() {
       var root = document.getElementById("pending-rows");
       root.innerHTML = "";
       var res = await fetch(
-        SUPABASE_URL + "/rest/v1/payment_requests?select=id,name,phone,mpesa_code,status&status=eq.pending&order=id.desc&limit=20",
+        SUPABASE_URL + "/rest/v1/payment_requests?select=id,name,phone,mpesa_code,status&status=eq.pending&order=id.desc&limit=25",
         { headers: headers() }
       );
+      touchSync();
       if (!res.ok) {
-        root.innerHTML = '<div class="tr"><div>Could not load pending requests.</div><div></div><div></div><div></div></div>';
+        root.innerHTML = '<div class="tr" data-label="Pending"><div colspan="4">Could not load pending requests.</div></div>';
+        document.getElementById("pending-badge").textContent = "?";
         return;
       }
       var rows = await res.json();
+      document.getElementById("pending-badge").textContent = String(rows.length);
+
       if (!rows.length) {
-        root.innerHTML = '<div class="tr"><div>No pending requests.</div><div></div><div></div><div></div></div>';
+        root.innerHTML = '<div class="tr" data-label="Pending"><div style="grid-column:1/-1;color:var(--muted);">No pending requests.</div></div>';
         return;
       }
       for (var i = 0; i < rows.length; i++) {
-        var row = rows[i];
-        var line = document.createElement("div");
-        line.className = "tr";
-        line.innerHTML =
-          "<div>" + (row.name || "-") + "</div>" +
-          "<div>" + (row.phone || "-") + "</div>" +
-          "<div>" + (row.mpesa_code || "-") + "</div>" +
-          '<div><button class="btn" style="margin:0;padding:8px 10px;font-size:12px;">Approve</button></div>';
-        (function (id, name, phone, code, btn) {
-          btn.addEventListener("click", function () {
-            approvePendingRequest(id, name || "", phone || "", code || "");
+        (function (row) {
+          var line = document.createElement("div");
+          line.className = "tr";
+          line.setAttribute("data-label", "Request");
+          var nm = row.name || "—";
+          var ph = displayPhone(row.phone);
+          var cd = row.mpesa_code || "—";
+          line.innerHTML =
+            "<div>" + nm + "</div>" +
+            "<div>" + ph + "</div>" +
+            "<div style=\"font-family:monospace;\">" + cd + "</div>" +
+            "<div class=\"actions\">" +
+            "<button type=\"button\" class=\"btn small approve-btn\">Approve</button>" +
+            "<button type=\"button\" class=\"btn secondary small fill-btn\">Copy to form</button>" +
+            "<button type=\"button\" class=\"btn danger small reject-btn\">Reject</button>" +
+            "</div>";
+
+          line.querySelector(".approve-btn").addEventListener("click", function () {
+            approvePendingRequest(row.id, row.name, row.phone, row.mpesa_code);
           });
-        })(row.id, row.name, row.phone, row.mpesa_code, line.querySelector("button"));
-        root.appendChild(line);
+          line.querySelector(".fill-btn").addEventListener("click", function () {
+            fillFormFromPending(row.name, row.phone, row.mpesa_code);
+          });
+          line.querySelector(".reject-btn").addEventListener("click", function () {
+            rejectPendingRequest(row.id);
+          });
+          root.appendChild(line);
+        })(rows[i]);
       }
     }
 
     async function checkAccess() {
       try {
-        var payload = collectInput();
+        var payload = collectInputLoose();
         var res = await fetch(
           SUPABASE_URL + "/rest/v1/signups?mpesa_code=eq." + encodeURIComponent(payload.code) + "&phone=eq." + encodeURIComponent(payload.phone) + "&select=id&limit=1",
           { headers: headers() }
@@ -397,9 +544,9 @@
         if (!res.ok) throw new Error("Could not check access.");
         var rows = await res.json();
         if (rows.length) {
-          setStatus("ok", "Access exists for this phone + code.");
+          setStatus("ok", "Access record exists for this phone + code.");
         } else {
-          setStatus("warn", "No access record found yet for this phone + code.");
+          setStatus("warn", "No signup yet for this phone + code.");
         }
       } catch (err) {
         setStatus("err", err.message || "Check failed.");
@@ -410,38 +557,59 @@
       var rowsRoot = document.getElementById("rows");
       rowsRoot.innerHTML = "";
       var res = await fetch(
-        SUPABASE_URL + "/rest/v1/signups?select=name,phone,mpesa_code&order=id.desc&limit=12",
+        SUPABASE_URL + "/rest/v1/signups?select=name,phone,mpesa_code&order=id.desc&limit=15",
         { headers: headers() }
       );
+      touchSync();
       if (!res.ok) {
-        rowsRoot.innerHTML = '<div class="tr"><div>Could not load records.</div><div></div><div></div><div></div></div>';
+        rowsRoot.innerHTML = '<div class="tr" data-label="Granted"><div>Could not load.</div></div>';
         return;
       }
       var rows = await res.json();
       if (!rows.length) {
-        rowsRoot.innerHTML = '<div class="tr"><div>No records yet.</div><div></div><div></div><div></div></div>';
+        rowsRoot.innerHTML = '<div class="tr" data-label="Granted"><div style="color:var(--muted);">No signups yet.</div></div>';
         return;
       }
       for (var i = 0; i < rows.length; i++) {
         var row = rows[i];
         var line = document.createElement("div");
         line.className = "tr";
+        line.setAttribute("data-label", "Granted");
         line.innerHTML =
-          "<div>" + (row.name || "-") + "</div>" +
-          "<div>" + (row.phone || "-") + "</div>" +
-          "<div>" + (row.mpesa_code || "-") + "</div>" +
+          "<div>" + (row.name || "—") + "</div>" +
+          "<div>" + displayPhone(row.phone) + "</div>" +
+          "<div style=\"font-family:monospace;\">" + (row.mpesa_code || "—") + "</div>" +
           '<div><span class="pill">Granted</span></div>';
         rowsRoot.appendChild(line);
       }
     }
 
+    async function refreshAll() {
+      await loadPending();
+      await loadRecent();
+    }
+
+    function startPolling() {
+      if (pollTimer) clearInterval(pollTimer);
+      pollTimer = setInterval(function () {
+        if (document.visibilityState !== "visible") return;
+        refreshAll();
+      }, POLL_MS);
+      document.getElementById("live-dot").classList.remove("off");
+      document.getElementById("live-label").textContent = "Auto-refresh every " + (POLL_MS / 1000) + "s";
+    }
+
     document.getElementById("grant-btn").addEventListener("click", grantAccess);
     document.getElementById("check-btn").addEventListener("click", checkAccess);
     document.getElementById("refresh-btn").addEventListener("click", loadRecent);
-    document.getElementById("refresh-pending-btn").addEventListener("click", loadPending);
+    document.getElementById("refresh-pending-btn").addEventListener("click", refreshAll);
 
-    loadPending();
-    loadRecent();
+    document.addEventListener("visibilitychange", function () {
+      if (document.visibilityState === "visible") refreshAll();
+    });
+
+    refreshAll();
+    startPolling();
   </script>
 </body>
 </html>
